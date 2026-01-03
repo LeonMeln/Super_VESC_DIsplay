@@ -93,7 +93,7 @@ void decode_msg(uint32_t eid, uint8_t *data8, int len) {
 	// Log all incoming CAN packets with their type
 	static uint32_t packet_count = 0;
 	if (packet_count++ % 100 == 0 || cmd == CAN_PACKET_PING || cmd == CAN_PACKET_PONG) {
-		LOG_VERBOSE(CAN, "RX: ID=0x%03X (VESC:%d, CMD:0x%02X) Len=%d", eid, id, cmd, len);
+		LOG_VERBOSE(CAN_BUS, "RX: ID=0x%03X (VESC:%d, CMD:0x%02X) Len=%d", eid, id, cmd, len);
 	}
 
 	// Handle messages addressed to us
@@ -217,7 +217,7 @@ void decode_msg(uint32_t eid, uint8_t *data8, int len) {
 			}
 			else
 			{
-				LOG_ERROR(CAN, "No packet handler set");
+				LOG_ERROR(CAN_BUS, "No packet handler set");
 			}
 		}
 		
@@ -251,17 +251,17 @@ void decode_msg(uint32_t eid, uint8_t *data8, int len) {
 		} break;
 
 	case CAN_PACKET_PING: {
-		LOG_DEBUG(CAN, "📥 PING received from ID %d", data8[0]);
+		LOG_DEBUG(CAN_BUS, "📥 PING received from ID %d", data8[0]);
 		uint8_t buffer[2];
 		buffer[0] = can_config.controller_id;
 		buffer[1] = HW_TYPE_CUSTOM_MODULE;
 		uint32_t pong_id = data8[0] | ((uint32_t)CAN_PACKET_PONG << 8);
-		LOG_DEBUG(CAN, "📤 Sending PONG: ID=0x%03X, MyID=%d, HW_TYPE=%d", pong_id, buffer[0], buffer[1]);
+		LOG_DEBUG(CAN_BUS, "📤 Sending PONG: ID=0x%03X, MyID=%d, HW_TYPE=%d", pong_id, buffer[0], buffer[1]);
 		comm_can_transmit_eid(pong_id, buffer, 2);
 	} break;
 
 	case CAN_PACKET_PONG:
-		LOG_DEBUG(CAN, "📥 PONG received: ID=%d, HW_TYPE=%d", data8[0], len >= 2 ? data8[1] : -1);
+		LOG_DEBUG(CAN_BUS, "📥 PONG received: ID=%d, HW_TYPE=%d", data8[0], len >= 2 ? data8[1] : -1);
 		xSemaphoreGive(ping_sem);
 		if (len >= 2) {
 			ping_hw_last = (HW_TYPE)data8[1];
@@ -291,7 +291,7 @@ void decode_msg(uint32_t eid, uint8_t *data8, int len) {
 			// Log first STATUS packet from new VESC
 			static int8_t last_status_id = -1;
 			if (last_status_id != id) {
-				LOG_INFO(CAN, "📊 STATUS packet from VESC #%d: RPM=%.0f, Current=%.2fA", id, stat_tmp->rpm, stat_tmp->current);
+				LOG_INFO(CAN_BUS, "📊 STATUS packet from VESC #%d: RPM=%.0f, Current=%.2fA", id, stat_tmp->rpm, stat_tmp->current);
 				last_status_id = id;
 			}
 				break;
@@ -384,6 +384,9 @@ void rx_task(void *arg) {
 	while (!stop_rx) {
 		twai_message_t msg;
 		if (twai_receive(&msg, pdMS_TO_TICKS(10)) == ESP_OK) {
+			if (msg.data[0] != 0x00) {
+				LOG_HEX_INFO(CAN_HEX, msg.data, msg.data_length_code, "CAN RX:");
+			}
 			int next_write = rx_write + 1;
 			if (next_write >= RXBUF_LEN) {
 				next_write = 0;
@@ -467,7 +470,7 @@ void comm_can_start(int pin_tx, int pin_rx, uint8_t controller_id, int can_speed
 			t_config = TWAI_TIMING_CONFIG_1MBITS();
 			break;
 		default:
-			LOG_WARN(CAN, "Invalid CAN speed %d kbps, using 250 kbps", can_speed_kbps);
+			LOG_WARN(CAN_BUS, "Invalid CAN speed %d kbps, using 250 kbps", can_speed_kbps);
 			t_config = TWAI_TIMING_CONFIG_250KBITS();
 			can_config.can_baud_rate_kbps = 250;
 			break;
@@ -497,7 +500,7 @@ void comm_can_start(int pin_tx, int pin_rx, uint8_t controller_id, int can_speed
 
 	init_done = true;
 
-	LOG_INFO(CAN, "Initialized: TX=%d, RX=%d, ID=%d, Speed=%d kbps", pin_tx, pin_rx, controller_id, can_config.can_baud_rate_kbps);
+	LOG_INFO(CAN_BUS, "Initialized: TX=%d, RX=%d, ID=%d, Speed=%d kbps", pin_tx, pin_rx, controller_id, can_config.can_baud_rate_kbps);
 }
 
 void comm_can_stop(void) {
@@ -517,7 +520,7 @@ void comm_can_stop(void) {
 }
 
 void comm_can_reinit(uint8_t controller_id, int can_speed_kbps) {
-	LOG_INFO(CAN, "Reinitializing CAN: ID=%d, Speed=%d kbps", controller_id, can_speed_kbps);
+	LOG_INFO(CAN_BUS, "Reinitializing CAN: ID=%d, Speed=%d kbps", controller_id, can_speed_kbps);
 	
 	// Store previous pin configuration
 	int prev_tx = g_config.tx_io;
@@ -548,7 +551,7 @@ void comm_can_reinit(uint8_t controller_id, int can_speed_kbps) {
 			t_config = TWAI_TIMING_CONFIG_1MBITS();
 			break;
 		default:
-			LOG_WARN(CAN, "Invalid CAN speed %d kbps, using 250 kbps", can_speed_kbps);
+			LOG_WARN(CAN_BUS, "Invalid CAN speed %d kbps, using 250 kbps", can_speed_kbps);
 			t_config = TWAI_TIMING_CONFIG_250KBITS();
 			can_config.can_baud_rate_kbps = 250;
 			break;
@@ -563,7 +566,7 @@ void comm_can_reinit(uint8_t controller_id, int can_speed_kbps) {
 	
 	init_done = true;
 	
-	LOG_INFO(CAN, "CAN reinitialized successfully: TX=%d, RX=%d, ID=%d, Speed=%d kbps", 
+	LOG_INFO(CAN_BUS, "CAN reinitialized successfully: TX=%d, RX=%d, ID=%d, Speed=%d kbps", 
 	         prev_tx, prev_rx, controller_id, can_config.can_baud_rate_kbps);
 }
 
@@ -576,6 +579,7 @@ void comm_can_transmit_eid(uint32_t id, const uint8_t *data, uint8_t len) {
 		len = 8;
 	}
 
+	LOG_HEX_INFO(CAN_HEX, data, len, "CAN TX:");
 	twai_message_t tx_msg = {0};
 	tx_msg.extd = 1;
 	tx_msg.identifier = id;

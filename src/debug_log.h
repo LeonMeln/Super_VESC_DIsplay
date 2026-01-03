@@ -32,18 +32,27 @@
 #define LOG_LEVEL_VERBOSE 0  // Verbose/detailed logs (disabled by default)
 
 // Module-specific logging (set to 0 to disable specific modules)
-#define LOG_CAN_ENABLED     1
-#define LOG_BLE_ENABLED     1
-#define LOG_PACKET_ENABLED  1
-#define LOG_VESC_ENABLED    0
-#define LOG_SYSTEM_ENABLED  1
-#define LOG_UI_ENABLED      0
-#define LOG_LIMITS_ENABLED  1
-#define LOG_BLE_CLIENT_ENABLED 1
-#define LOG_BLE_KEYBOARD_ENABLED 1
-#define LOG_MEDIA_ENABLED   1
-#define LOG_OTA_ENABLED     1
-#define LOG_MUSIC_ENABLED   1
+// BLE-UART: Communication channel between phone and ESP32 (Nordic UART Service)
+#define LOG_BLE_UART_ENABLED  0  // BLE-UART debugging enabled (phone ↔ ESP32)
+#define LOG_BLE_HEX_ENABLED  0  // BLE-UART hex debugging enabled (phone ↔ ESP32)
+
+// CAN Bus: Communication channel between ESP32 and VESC controller
+#define LOG_CAN_BUS_ENABLED   0  // CAN bus debugging enabled (ESP32 ↔ VESC)
+#define LOG_CAN_HEX_ENABLED  0  // CAN bus hex debugging enabled (ESP32 ↔ VESC)
+
+// Legacy/other modules (disabled)
+#define LOG_CAN_ENABLED     0  // Legacy CAN debugging (use LOG_CAN_BUS_ENABLED instead)
+#define LOG_BLE_ENABLED     0  // Legacy BLE debugging (use LOG_BLE_UART_ENABLED instead)
+#define LOG_PACKET_ENABLED  0  // Packet debugging disabled
+#define LOG_VESC_ENABLED    0  // VESC debugging disabled
+#define LOG_SYSTEM_ENABLED  0  // System debugging disabled
+#define LOG_UI_ENABLED      0  // UI debugging disabled
+#define LOG_LIMITS_ENABLED  0  // Limits debugging disabled
+#define LOG_BLE_CLIENT_ENABLED 0  // BLE client debugging disabled
+#define LOG_BLE_KEYBOARD_ENABLED 0  // BLE keyboard debugging disabled
+#define LOG_MEDIA_ENABLED   0  // Media debugging disabled
+#define LOG_OTA_ENABLED     0  // OTA debugging disabled
+#define LOG_MUSIC_ENABLED   0  // Music debugging disabled
 
 // ============================================================================
 // LOGGING MACROS - DO NOT MODIFY BELOW THIS LINE
@@ -125,6 +134,62 @@
       Serial.println(); \
     }
 
+    
+  // Special macro for data dumps (hex output)
+  #define LOG_HEX_VERBOSE(module, data, len, prefix) \
+  if (LOG_##module##_ENABLED && LOG_LEVEL_VERBOSE) { \
+    Serial.printf("[%lu] 📊 [%s] %s", millis(), #module, prefix); \
+    for (int i = 0; i < len && i < 16; i++) { \
+      Serial.printf("%02X ", data[i]); \
+    } \
+    if (len > 16) Serial.printf("... (%d more)", len - 16); \
+    Serial.println(); \
+  }
+
+  
+  // Special macro for data dumps (hex output)
+  #define LOG_HEX_DEBUG(module, data, len, prefix) \
+    if (LOG_##module##_ENABLED && LOG_LEVEL_DEBUG) { \
+      Serial.printf("[%lu] 📊 [%s] %s", millis(), #module, prefix); \
+      for (int i = 0; i < len && i < 16; i++) { \
+        Serial.printf("%02X ", data[i]); \
+      } \
+      if (len > 16) Serial.printf("... (%d more)", len - 16); \
+      Serial.println(); \
+    }
+    
+  // Special macro for data dumps (hex output)
+  #define LOG_HEX_INFO(module, data, len, prefix) \
+  if (LOG_##module##_ENABLED && LOG_LEVEL_INFO) { \
+    Serial.printf("[%lu] 📊 [%s] %s", millis(), #module, prefix); \
+    for (int i = 0; i < len && i < 16; i++) { \
+      Serial.printf("%02X ", data[i]); \
+    } \
+    if (len > 16) Serial.printf("... (%d more)", len - 16); \
+    Serial.println(); \
+  }
+
+  // Special macro for data dumps (hex output)
+  #define LOG_HEX_WARN(module, data, len, prefix) \
+  if (LOG_##module##_ENABLED && LOG_LEVEL_WARN) { \
+    Serial.printf("[%lu] 📊 [%s] %s", millis(), #module, prefix); \
+    for (int i = 0; i < len && i < 16; i++) { \
+      Serial.printf("%02X ", data[i]); \
+    } \
+    if (len > 16) Serial.printf("... (%d more)", len - 16); \
+    Serial.println(); \
+  }
+
+  // Special macro for data dumps (hex output)
+  #define LOG_HEX_INFO(module, data, len, prefix) \
+  if (LOG_##module##_ENABLED && LOG_LEVEL_INFO) { \
+    Serial.printf("[%lu] 📊 [%s] %s", millis(), #module, prefix); \
+    for (int i = 0; i < len && i < 16; i++) { \
+      Serial.printf("%02X ", data[i]); \
+    } \
+    if (len > 16) Serial.printf("... (%d more)", len - 16); \
+    Serial.println(); \
+  }
   // Raw printf without module tag (for custom formatting)
   #define LOG_RAW(...) Serial.printf(__VA_ARGS__)
 

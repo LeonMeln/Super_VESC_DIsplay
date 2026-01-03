@@ -273,7 +273,6 @@ Super_VESC_Display/
 ### Main Modules
 
 - **`comm_can.*`**: CAN communication with VESC
-- **`vesc_handler.*`**: VESC command processing
 - **`vesc_rt_data.*`**: Real-time telemetry processing
 - **`vesc_battery_calc.*`**: Smart battery calculation
 - **`vesc_trip_persist.*`**: Statistics persistence

@@ -45,7 +45,6 @@
 #include "music_server.h"            // Music server BLE service
 #include "buffer.h"                  // Buffer utility functions
 #include "datatypes.h"               // VESC data types
-#include "vesc_handler.h"            // VESC command handler
 #include "vesc_rt_data.h"            // RT data module
 #include "ui_updater.h"              // UI updater module
 #include "debug_log.h"               // Logging system
@@ -106,9 +105,6 @@ void setup()
   
   // Initialize I2C for other peripherals on different pins
   I2C_Init();
-  
-  // Initialize VESC handler
-  vesc_handler_init();
   
   // Initialize CAN communication with settings
   uint8_t vesc_can_id = settings_get_controller_id();
@@ -173,8 +169,6 @@ void setup()
       if (vesc_ble_driver_init(pBLEServer)) {
         LOG_INFO(SYSTEM, "BLE VESC driver initialized successfully");
         
-        // Register BLE response callback in vesc_handler
-        vesc_handler_set_response_callback(ble_vesc_send_frame_resppnse);
         LOG_INFO(SYSTEM, "BLE response callback registered in VESC handler");
       } else {
         LOG_ERROR(SYSTEM, "BLE VESC driver initialization failed");
