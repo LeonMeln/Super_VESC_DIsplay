@@ -47,6 +47,7 @@
 #include "datatypes.h"               // VESC data types
 #include "vesc_rt_data.h"            // RT data module
 #include "ui_updater.h"              // UI updater module
+#include "vesc_lisp_poll.h"          // LISP poll module
 #include "debug_log.h"               // Logging system
 #include "dev_settings.h"                // Settings system
 
@@ -114,13 +115,19 @@ void setup()
   // Initialize RT data module with target VESC ID from settings
   vesc_rt_data_init();
   
+  // Initialize LISP poll module
+  vesc_lisp_poll_init();
+  
   // Set CAN packet handler for Bridge mode
   // ============================================================================
-  // BLE-CAN Bridge Mode: Forward CAN responses to BLE + Process RT data
+  // BLE-CAN Bridge Mode: Forward CAN responses to BLE + Process RT data + LISP poll
   // ============================================================================
   auto packet_handler_wrapper = [](unsigned char *data, unsigned int len) {
     // Process RT data responses
     vesc_rt_data_process_response(data, len);
+    
+    // Process LISP poll responses
+    vesc_lisp_poll_process_response(data, len);
     
     // Forward CAN responses to BLE
     BLE_OnCANResponse(data, len);
@@ -228,6 +235,10 @@ void setup()
   vesc_rt_data_start();
   LOG_INFO(SYSTEM, "RT data requests started");
   
+  // Start LISP poll (10 Hz)
+  vesc_lisp_poll_start();
+  LOG_INFO(SYSTEM, "LISP poll started (10 Hz)");
+  
   // Start UI automatic updates
   ui_updater_start();
   LOG_INFO(SYSTEM, "UI updates started");
@@ -247,6 +258,7 @@ void loop()
   if (millis() > 5000) {
     vesc_rt_data_loop();     // Process RT data requests
   }
+  vesc_lisp_poll_loop();     // Process LISP poll requests (10 Hz)
   ui_updater_update();     // Update UI with VESC data (checks 50ms interval internally)
   ui_updater_update_fps(); // Update FPS counter independently
   //check_brightness_changes(); // Check for brightness setting changes

@@ -53,6 +53,7 @@
 #define LOG_MEDIA_ENABLED   0  // Media debugging disabled
 #define LOG_OTA_ENABLED     0  // OTA debugging disabled
 #define LOG_MUSIC_ENABLED   0  // Music debugging disabled
+#define LOG_LISP_POLL_ENABLED 1  // LISP poll debugging enabled
 
 // ============================================================================
 // LOGGING MACROS - DO NOT MODIFY BELOW THIS LINE

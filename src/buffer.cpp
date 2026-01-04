@@ -20,6 +20,7 @@
 #include "buffer.h"
 #include <math.h>
 #include <stdbool.h>
+#include <string.h>
 
 void buffer_append_int16(uint8_t* buffer, int16_t number, int32_t *index) {
 	buffer[(*index)++] = number >> 8;
@@ -206,4 +207,22 @@ double buffer_get_float64_auto(const uint8_t *buffer, int32_t *index) {
 	double n = buffer_get_float32_auto(buffer, index);
 	double err = buffer_get_float32_auto(buffer, index);
 	return n + err;
+}
+
+int buffer_get_string(const uint8_t *buffer, int buffer_len, char *output, int max_len, int32_t *index) {
+	// VESC protocol: strings are stored as data + null terminator (no length prefix)
+	int len = 0;
+	
+	// Find null terminator (but don't exceed max_len-1 or buffer_len)
+	while (*index < buffer_len && len < max_len - 1 && buffer[*index] != 0) {
+		output[len++] = buffer[(*index)++];
+	}
+	
+	// Skip null terminator if found
+	if (*index < buffer_len && buffer[*index] == 0) {
+		(*index)++;
+	}
+	
+	output[len] = '\0';
+	return len;
 }

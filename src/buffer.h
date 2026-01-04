@@ -46,4 +46,10 @@ double buffer_get_double64(const uint8_t *buffer, double scale, int32_t *index);
 float buffer_get_float32_auto(const uint8_t *buffer, int32_t *index);
 double buffer_get_float64_auto(const uint8_t *buffer, int32_t *index);
 
+// String functions (for LISP stats)
+// Reads string until null terminator (VESC protocol format: data + null terminator, no length prefix)
+// Returns string length (excluding null terminator), copies string to output buffer (must be at least max_len bytes)
+// buffer_len: total length of buffer to prevent reading beyond bounds
+int buffer_get_string(const uint8_t *buffer, int buffer_len, char *output, int max_len, int32_t *index);
+
 #endif /* BUFFER_H_ */
