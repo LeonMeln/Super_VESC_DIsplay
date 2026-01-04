@@ -60,12 +60,19 @@ extern bool bleNotificationsSubscribed;
 
 
 // BLE Characteristic Callbacks
-class MyCallbacks : public BLECharacteristicCallbacks
+class MyCallbacksRX : public BLECharacteristicCallbacks
 {
 public:
   void onWrite(BLECharacteristic *pCharacteristic);
   void onSubscribe(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc, uint16_t subValue);
 };
+
+class MyCallbacksTX : public BLECharacteristicCallbacks
+{
+public:
+  void onNotify(NimBLECharacteristic* pCharacteristic);
+};
+
 
 // Function declarations
 bool vesc_ble_driver_init(NimBLEServer* pServer);  // Now accepts server as parameter

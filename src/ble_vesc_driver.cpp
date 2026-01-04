@@ -8,6 +8,8 @@
 #include "settings_ble_commands.h"
 #include "vesc_rt_data.h"
 #include "datatypes.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
 // BLE Configuration variables
 int MTU_SIZE = 23;
@@ -21,6 +23,7 @@ static NimBLEServer *pServer = nullptr;
 static NimBLEService *pServiceVesc = nullptr;
 static NimBLECharacteristic *pCharacteristicVescTx = nullptr;
 static NimBLECharacteristic *pCharacteristicVescRx = nullptr;
+static SemaphoreHandle_t ble_send_mutex;
 
 // Buffer for BLE data (will be used for CAN communication later)
 static std::string vescBuffer;
@@ -64,11 +67,12 @@ void ble_vesc_send_frame_response_to_ble(uint8_t* data, unsigned int len) {
     LOG_WARN(BLE_UART, "Cannot send response - not connected");
     return;
   }
+  // Wait for previous notification to complete before sending new one
+  xSemaphoreTake(ble_send_mutex, 200/portTICK_PERIOD_MS);
   LOG_HEX_INFO(BLE_HEX, data, len, "BLE TX:");
   pCharacteristicVescTx->setValue(data, len);
   pCharacteristicVescTx->notify();
-
-  //delay(100);
+  //Serial.println("send frame");
 }
 
 // Packet processed callback - called when valid packet is parsed from BLE
@@ -120,7 +124,7 @@ void BLE_OnPacketParsed(uint8_t* data, uint16_t len) {
 }
 
 // BLE Characteristic Callbacks Implementation
-void MyCallbacks::onWrite(BLECharacteristic *pCharacteristic)
+void MyCallbacksRX::onWrite(BLECharacteristic *pCharacteristic)
 {
   //LOG_VERBOSE(BLE, "onWrite to characteristics: %s", pCharacteristic->getUUID().toString().c_str());
   std::string rxValue = pCharacteristic->getValue();
@@ -145,7 +149,15 @@ void MyCallbacks::onWrite(BLECharacteristic *pCharacteristic)
   }
 }
 
-void MyCallbacks::onSubscribe(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc, uint16_t subValue)
+void MyCallbacksTX::onNotify(NimBLECharacteristic* pCharacteristic)
+{
+  // onNotify is called BEFORE notification is sent
+  //Serial.println("onNotify called");
+  //LOG_DEBUG(BLE_UART, "📤 onNotify: About to send notification");
+  xSemaphoreGive(ble_send_mutex);
+}
+
+void MyCallbacksRX::onSubscribe(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc, uint16_t subValue)
 {
   // subValue: 0 = unsubscribed, 1 = notify, 2 = indicate, 3 = notify+indicate
   if (pCharacteristic->getUUID().equals(pCharacteristicVescTx->getUUID()))
@@ -166,7 +178,15 @@ bool vesc_ble_driver_init(NimBLEServer* pServer) {
     LOG_ERROR(BLE_UART, "BLE server is null");
     return false;
   }
-  
+
+  ble_send_mutex = xSemaphoreCreateBinary();
+  if (ble_send_mutex == NULL) {
+    LOG_ERROR(BLE_UART, "Failed to create send mutex");
+    return false;
+  }
+  // Binary semaphore starts in "taken" state (0), so give it once to make it available
+  xSemaphoreGive(ble_send_mutex);
+
   try {
     // Store server reference
     ::pServer = pServer;
@@ -191,8 +211,8 @@ bool vesc_ble_driver_init(NimBLEServer* pServer) {
         NIMBLE_PROPERTY::WRITE |
             NIMBLE_PROPERTY::WRITE_NR);
 
-    pCharacteristicVescRx->setCallbacks(new MyCallbacks());
-    pCharacteristicVescTx->setCallbacks(new MyCallbacks());
+    pCharacteristicVescRx->setCallbacks(new MyCallbacksRX());
+    pCharacteristicVescTx->setCallbacks(new MyCallbacksTX());
 
     // Start the VESC service
     pService->start();
