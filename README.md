@@ -24,6 +24,22 @@ Super VESC Display is a full-featured display for VESC controllers, providing:
 - **Touchscreen**: GT911, 5-point capacitive
 - **Interfaces**: CAN, RS485, I2C, MicroSD, RTC with battery backup
 
+### 3D Printed Case
+
+The project includes 3D models for a custom case in the `3d-model/` directory:
+
+**Files:**
+- `esp32-s3-touch v11/cover-TPU.stl` - Protective cover (TPU material recommended)
+- `esp32-s3-touch v11/insert.stl` - Internal insert
+- `esp32-s3-touch v11/main.stl` - Main case body
+- `esp32-s3-touch v11/u-holder.stl` - U-shaped holder
+- `esp32-s3-touch.step` - STEP file for CAD editing
+
+**Printing recommendations:**
+- Main case: PLA/PETG, 0.2mm layer height
+- Cover: TPU for flexibility and protection
+- 20-30% infill for structural parts
+
 ### Pinout
 
 #### Display (RGB Parallel Interface)
@@ -87,6 +103,49 @@ pio run --target upload
 ```bash
 pio device monitor
 ```
+
+## 🎮 Cruise Control (LispBM Script)
+
+The project includes a LispBM script (`main.lisp`) that implements cruise control functionality for VESC controllers.
+
+### Features
+
+**Cruise Control:**
+- Activate cruise control by pressing RX button while moving
+- Increase speed by 1 km/h: press RX button while cruise is active
+- Decrease speed by 1 km/h: press TX button while cruise is active
+- Automatic deactivation when throttle or brake is pressed
+- Maintains constant speed regardless of terrain
+
+**Speed Profiles:**
+- **Profile 0 (Slow)**: 25 km/h max speed - 500Hz beep
+- **Profile 1 (Medium)**: 35 km/h max speed - 750Hz beep
+- **Profile 2 (Fast)**: 50 km/h max speed - 1000Hz beep
+- Switch profiles by pressing TX button when cruise is inactive
+
+### Installation
+
+1. Connect to VESC via VESC Tool
+2. Go to **LispBM** tab
+3. Load `main.lisp` file
+4. Click **Upload** to flash the script to VESC
+5. Script will start automatically on VESC boot
+
+### Button Configuration
+
+The script uses UART pins configured as GPIO inputs:
+- **RX Pin**: Cruise control activation / speed increase
+- **TX Pin**: Profile switching / speed decrease
+
+Connect buttons between pin and GND (internal pull-up enabled).
+
+### Usage
+
+1. **Activate Cruise Control**: Start riding, reach desired speed, press RX button
+2. **Adjust Speed Up**: While cruise is active, press RX button (+1 km/h per press)
+3. **Adjust Speed Down**: While cruise is active, press TX button (-1 km/h per press)
+4. **Deactivate**: Press throttle or brake
+5. **Change Profile**: When cruise is inactive, press TX button to cycle through profiles
 
 ## 🔌 VESC Connection
 
@@ -266,6 +325,10 @@ Super_VESC_Display/
 │   ├── generated/         # Generated GUI code
 │   ├── custom/            # Custom code
 │   └── lvgl/              # LVGL library
+├── 3d-model/              # 3D printable case files
+│   ├── esp32-s3-touch v11/ # STL files for printing
+│   └── esp32-s3-touch.step # STEP file for editing
+├── main.lisp              # LispBM cruise control script
 ├── platformio.ini         # PlatformIO configuration
 └── README.md              # This file
 ```
