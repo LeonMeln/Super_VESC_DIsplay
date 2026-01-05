@@ -169,14 +169,27 @@ void vesc_lisp_poll_process_response(unsigned char *data, unsigned int len) {
 	else {
 		LOG_INFO(LISP_POLL, "cruise-active = NOT FOUND\n");
 	}
+
+	// Find and print rpm-per-ms
+	float rpm_per_ms = 0.0f;
+	if (vesc_lisp_poll_get_variable_float("rpm-per-ms", &rpm_per_ms)) {
+		LOG_INFO(LISP_POLL, "rpm-per-ms = %.6f\n", rpm_per_ms);
+	} else {
+		LOG_INFO(LISP_POLL, "rpm-per-ms = NOT FOUND\n");
+	}
+	
 	
 	// Find and print cruise-rpm
-	float cruise_kmh_float = 0.0f;
-	if (vesc_lisp_poll_get_variable_float("cruise-kmh", &cruise_kmh_float)) {
-		LOG_INFO(LISP_POLL, "cruise-kmh = %.6f\n", cruise_kmh_float);
-		update_cruise_speed(cruise_kmh_float);
+	float cruise_rpm_float = 0.0f;
+	if (vesc_lisp_poll_get_variable_float("cruise-rpm", &cruise_rpm_float)) {
+		LOG_INFO(LISP_POLL, "cruise-rpm = %.6f\n", cruise_rpm_float);
+		if (rpm_per_ms > 0.1f) {	
+			update_cruise_speed(cruise_rpm_float/rpm_per_ms*3.6f);
+		} else {
+			LOG_INFO(LISP_POLL, "rpm-per-ms = %.6f, too low to calculate cruise speed\n", rpm_per_ms);
+		}
 	} else {
-		LOG_INFO(LISP_POLL, "cruise-kmh = NOT FOUND\n");
+		LOG_INFO(LISP_POLL, "cruise-rpm = NOT FOUND\n");
 	}
 
 	int32_t current_profile_int = 0;
