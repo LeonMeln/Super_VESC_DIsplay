@@ -24,7 +24,7 @@
 #define KEY_UPTIME_TOTAL       "uptime_total"   // Total accumulated uptime (milliseconds)
 #define KEY_LAST_VESC_TRIP     "last_vesc_trip" // Last known VESC trip value
 #define KEY_LAST_VESC_AH       "last_vesc_ah"   // Last known VESC amp-hours value
-#define KEY_LAST_VESC_UPTIME   "last_vesc_uptime" // Last known VESC uptime value
+#define KEY_LAST_VESC_UPTIME   "last_vesc_time" // Last known VESC uptime value
 
 // State variables
 static bool initialized = false;

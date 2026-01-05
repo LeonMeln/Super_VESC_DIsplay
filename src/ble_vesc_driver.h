@@ -60,20 +60,25 @@ extern bool bleNotificationsSubscribed;
 
 
 // BLE Characteristic Callbacks
-class MyCallbacks : public BLECharacteristicCallbacks
+class MyCallbacksRX : public BLECharacteristicCallbacks
 {
 public:
   void onWrite(BLECharacteristic *pCharacteristic);
   void onSubscribe(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc, uint16_t subValue);
 };
 
+class MyCallbacksTX : public BLECharacteristicCallbacks
+{
+public:
+  void onNotify(NimBLECharacteristic* pCharacteristic);
+};
+
+
 // Function declarations
 bool vesc_ble_driver_init(NimBLEServer* pServer);  // Now accepts server as parameter
 void vesc_ble_driver_loop();
 bool BLE_IsConnected();
 bool BLE_IsSubscribed();
-void BLE_SendVescData(const vesc_sdk_data_t& data);
-void BLE_ProcessReceivedData();
 
 // Connection state callbacks (called from general BLE system callbacks)
 void vesc_ble_driver_on_connect(void);
@@ -81,18 +86,13 @@ void vesc_ble_driver_on_disconnect(void);
 void vesc_ble_driver_on_mtu_change(uint16_t MTU);
 
 // CAN Bridge Functions
-void BLE_SendRawCANMessage(uint32_t can_id, uint8_t* data, uint8_t len);
 bool BLE_ProcessCANCommand(uint8_t* data, uint8_t len);
 void BLE_ForwardCANToVESC(uint8_t* can_data, uint8_t len);
-void BLE_SendVESCResponse(uint32_t can_id, uint8_t* data, uint8_t len);
 
 // FIFO Buffer Functions
 bool BLE_InitCommandQueue();
 bool BLE_QueueCommand(uint8_t* data, uint16_t length, uint8_t target_vesc_id, uint8_t send_type);
 void BLE_ProcessCommandQueue();
-
-// Response sending (for vesc_handler callback)
-void ble_vesc_send_frame_resppnse(uint8_t* data, unsigned int len);
 
 // CAN response handler (used in BLE-CAN bridge mode)
 void BLE_OnCANResponse(uint8_t* data, unsigned int len);

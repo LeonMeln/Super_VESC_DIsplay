@@ -258,6 +258,9 @@ typedef enum {
 	COMM_IO_BOARD_SET_DIGITAL				= 124,
 	
 	COMM_GET_STATS							= 128,
+	
+	// Lisp
+	COMM_LISP_GET_STATS						= 134,
 } COMM_PACKET_ID;
 
 // Packet settings

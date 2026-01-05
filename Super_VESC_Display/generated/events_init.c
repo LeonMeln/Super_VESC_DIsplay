@@ -1,5 +1,5 @@
 /*
-* Copyright 2025 NXP
+* Copyright 2026 NXP
 * NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
 * accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
 * activating and/or otherwise using the software, you are agreeing that you have read, and that you agree to
@@ -24,6 +24,20 @@ static void dashboard_event_handler (lv_event_t *e)
     case LV_EVENT_SCREEN_LOADED:
     {
 
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+static void dashboard_reset_trip_img_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_CLICKED:
+    {
+        reset_icon_pressed();
         break;
     }
     default:
@@ -102,6 +116,7 @@ static void dashboard_settings_button_event_handler (lv_event_t *e)
 void events_init_dashboard (lv_ui *ui)
 {
     lv_obj_add_event_cb(ui->dashboard, dashboard_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->dashboard_reset_trip_img, dashboard_reset_trip_img_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->dashboard_slider_1, dashboard_slider_1_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->dashboard_slider_2, dashboard_slider_2_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->dashboard_slider_3, dashboard_slider_3_event_handler, LV_EVENT_ALL, ui);

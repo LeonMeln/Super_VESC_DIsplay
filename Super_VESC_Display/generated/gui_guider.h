@@ -1,5 +1,5 @@
 /*
-* Copyright 2025 NXP
+* Copyright 2026 NXP
 * NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
 * accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
 * activating and/or otherwise using the software, you are agreeing that you have read, and that you agree to
@@ -27,7 +27,7 @@ typedef struct
 	lv_meter_indicator_t *dashboard_Battery_meter_scale_0_ndline_0;
 	lv_meter_indicator_t *dashboard_Battery_meter_scale_0_arc_0;
 	lv_meter_indicator_t *dashboard_Battery_meter_scale_0_arc_1;
-	lv_obj_t *dashboard_img_2;
+	lv_obj_t *dashboard_reset_trip_img;
 	lv_obj_t *dashboard_img_3;
 	lv_obj_t *dashboard_Current_meter;
 	lv_meter_scale_t *dashboard_Current_meter_scale_0;
@@ -39,6 +39,10 @@ typedef struct
 	lv_meter_scale_t *dashboard_Speed_meter_scale_0;
 	lv_meter_indicator_t *dashboard_Speed_meter_scale_0_ndline_0;
 	lv_meter_indicator_t *dashboard_Speed_meter_scale_0_arc_0;
+	lv_meter_scale_t *dashboard_Speed_meter_scale_1;
+	lv_meter_indicator_t *dashboard_Speed_meter_scale_1_ndline_0;
+	lv_meter_scale_t *dashboard_Speed_meter_scale_2;
+	lv_meter_indicator_t *dashboard_Speed_meter_scale_2_ndline_0;
 	lv_obj_t *dashboard_img_1;
 	lv_obj_t *dashboard_Speed_text;
 	lv_obj_t *dashboard_odo_text;
@@ -73,6 +77,8 @@ typedef struct
 	lv_obj_t *dashboard_uptime_text;
 	lv_obj_t *dashboard_ble_connected_img;
 	lv_obj_t *dashboard_esc_not_connected_text;
+	lv_obj_t *dashboard_cruise_control_img;
+	lv_obj_t *dashboard_mode_text;
 	lv_obj_t *dashboard_slider_1;
 	lv_obj_t *dashboard_slider_2;
 	lv_obj_t *dashboard_slider_3;
@@ -118,6 +124,7 @@ LV_IMG_DECLARE(_trip_alpha_20x24);
 LV_IMG_DECLARE(_battery_alpha_30x35);
 LV_IMG_DECLARE(_speed_background_alpha_162x162);
 LV_IMG_DECLARE(_ble_con_alpha_43x30);
+LV_IMG_DECLARE(_cruise_control_alpha_38x38);
 LV_IMG_DECLARE(_settings2_alpha_30x30);
 
 LV_FONT_DECLARE(lv_font_montserratMedium_13)
@@ -128,6 +135,7 @@ LV_FONT_DECLARE(lv_font_Montserrat_I_20)
 LV_FONT_DECLARE(lv_font_Montserrat_I_26)
 LV_FONT_DECLARE(lv_font_Montserrat_I_15)
 LV_FONT_DECLARE(lv_font_Antonio_Regular_22)
+LV_FONT_DECLARE(lv_font_Montserrat_I_24)
 LV_FONT_DECLARE(lv_font_montserratMedium_12)
 LV_FONT_DECLARE(lv_font_montserratMedium_20)
 LV_FONT_DECLARE(lv_font_montserratMedium_24)

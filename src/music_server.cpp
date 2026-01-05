@@ -16,7 +16,9 @@
 
 // Include lodepng for PNG decoding
 // Include lvgl.h first to ensure LV_USE_PNG is defined
+#ifdef USE_LODEPNG
 #include "lodepng.h"
+#endif
 
 // BLE Server and Service pointers
 static NimBLEServer *pMusicServer = nullptr;
@@ -433,6 +435,7 @@ bool music_server_init(NimBLEServer* pServer) {
 }
 
 // Helper function to process PNG icon data
+#ifdef USE_LODEPNG
 static void processIconData(const uint8_t* png_data, size_t data_size)
 {
     if (data_size < 8) {
@@ -511,6 +514,7 @@ static void processIconData(const uint8_t* png_data, size_t data_size)
         LOG_ERROR(MUSIC, "PNG decode failed: %s (error code: %u)", lodepng_error_text(error), error);
     }
 }
+#endif
 
 // Main processing loop
 void music_server_loop(void)
@@ -564,10 +568,14 @@ void music_server_loop(void)
                     break;
 
                 case MUSIC_DATA_TYPE_ICON:
+#ifdef USE_LODEPNG
                     if (packet.data != nullptr && packet.data_size > 0) {
                         LOG_DEBUG(MUSIC, "Processing icon data (%zu bytes)", packet.data_size);
                         processIconData(packet.data, packet.data_size);
                     }
+#else
+                    LOG_WARN(MUSIC, "Icon data received but lodepng support is disabled (USE_LODEPNG not defined)");
+#endif
                     break;
             }
 

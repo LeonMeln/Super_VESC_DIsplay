@@ -1,5 +1,5 @@
 /*
-* Copyright 2025 NXP
+* Copyright 2026 NXP
 * NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
 * accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
 * activating and/or otherwise using the software, you are agreeing that you have read, and that you agree to
@@ -93,20 +93,20 @@ void setup_scr_dashboard(lv_ui *ui)
     lv_obj_set_style_bg_color(ui->dashboard_Battery_meter, lv_color_hex(0x2a3440), LV_PART_INDICATOR|LV_STATE_DEFAULT);
     lv_obj_set_style_bg_grad_dir(ui->dashboard_Battery_meter, LV_GRAD_DIR_NONE, LV_PART_INDICATOR|LV_STATE_DEFAULT);
 
-    //Write codes dashboard_img_2
-    ui->dashboard_img_2 = lv_img_create(ui->dashboard_tileview_1_tile);
-    lv_obj_add_flag(ui->dashboard_img_2, LV_OBJ_FLAG_CLICKABLE);
-    lv_img_set_src(ui->dashboard_img_2, &_trip_alpha_20x24);
-    lv_img_set_pivot(ui->dashboard_img_2, 50,50);
-    lv_img_set_angle(ui->dashboard_img_2, 0);
-    lv_obj_set_pos(ui->dashboard_img_2, 444, 269);
-    lv_obj_set_size(ui->dashboard_img_2, 20, 24);
+    //Write codes dashboard_reset_trip_img
+    ui->dashboard_reset_trip_img = lv_img_create(ui->dashboard_tileview_1_tile);
+    lv_obj_add_flag(ui->dashboard_reset_trip_img, LV_OBJ_FLAG_CLICKABLE);
+    lv_img_set_src(ui->dashboard_reset_trip_img, &_trip_alpha_20x24);
+    lv_img_set_pivot(ui->dashboard_reset_trip_img, 50,50);
+    lv_img_set_angle(ui->dashboard_reset_trip_img, 0);
+    lv_obj_set_pos(ui->dashboard_reset_trip_img, 444, 272);
+    lv_obj_set_size(ui->dashboard_reset_trip_img, 20, 24);
 
-    //Write style for dashboard_img_2, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_img_recolor_opa(ui->dashboard_img_2, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_img_opa(ui->dashboard_img_2, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui->dashboard_img_2, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_clip_corner(ui->dashboard_img_2, true, LV_PART_MAIN|LV_STATE_DEFAULT);
+    //Write style for dashboard_reset_trip_img, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_img_recolor_opa(ui->dashboard_reset_trip_img, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_img_opa(ui->dashboard_reset_trip_img, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->dashboard_reset_trip_img, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_clip_corner(ui->dashboard_reset_trip_img, true, LV_PART_MAIN|LV_STATE_DEFAULT);
 
     //Write codes dashboard_img_3
     ui->dashboard_img_3 = lv_img_create(ui->dashboard_tileview_1_tile);
@@ -114,7 +114,7 @@ void setup_scr_dashboard(lv_ui *ui)
     lv_img_set_src(ui->dashboard_img_3, &_battery_alpha_30x35);
     lv_img_set_pivot(ui->dashboard_img_3, 50,50);
     lv_img_set_angle(ui->dashboard_img_3, 0);
-    lv_obj_set_pos(ui->dashboard_img_3, 408, 157);
+    lv_obj_set_pos(ui->dashboard_img_3, 407, 157);
     lv_obj_set_size(ui->dashboard_img_3, 30, 35);
 
     //Write style for dashboard_img_3, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -187,6 +187,22 @@ void setup_scr_dashboard(lv_ui *ui)
     // add needle line for ui->dashboard_Speed_meter_scale_0.
     ui->dashboard_Speed_meter_scale_0_ndline_0 = lv_meter_add_needle_line(ui->dashboard_Speed_meter, ui->dashboard_Speed_meter_scale_0, 4, lv_color_hex(0x3eb3df), 14);
     lv_meter_set_indicator_value(ui->dashboard_Speed_meter, ui->dashboard_Speed_meter_scale_0_ndline_0, 19);
+    // add scale ui->dashboard_Speed_meter_scale_1
+    ui->dashboard_Speed_meter_scale_1 = lv_meter_add_scale(ui->dashboard_Speed_meter);
+    lv_meter_set_scale_ticks(ui->dashboard_Speed_meter, ui->dashboard_Speed_meter_scale_1, 41, 0, 0, lv_color_hex(0xff0000));
+    lv_meter_set_scale_range(ui->dashboard_Speed_meter, ui->dashboard_Speed_meter_scale_1, -6, 60, 310, 101);
+
+    // add needle line for ui->dashboard_Speed_meter_scale_1.
+    ui->dashboard_Speed_meter_scale_1_ndline_0 = lv_meter_add_needle_line(ui->dashboard_Speed_meter, ui->dashboard_Speed_meter_scale_1, 3, lv_color_hex(0x00ff86), 2);
+    lv_meter_set_indicator_value(ui->dashboard_Speed_meter, ui->dashboard_Speed_meter_scale_1_ndline_0, 0);
+    // add scale ui->dashboard_Speed_meter_scale_2
+    ui->dashboard_Speed_meter_scale_2 = lv_meter_add_scale(ui->dashboard_Speed_meter);
+    lv_meter_set_scale_ticks(ui->dashboard_Speed_meter, ui->dashboard_Speed_meter_scale_2, 41, 0, 25, lv_color_hex(0x1f1f1f));
+    lv_meter_set_scale_range(ui->dashboard_Speed_meter, ui->dashboard_Speed_meter_scale_2, -6, 60, 310, 101);
+
+    // add needle line for ui->dashboard_Speed_meter_scale_2.
+    ui->dashboard_Speed_meter_scale_2_ndline_0 = lv_meter_add_needle_line(ui->dashboard_Speed_meter, ui->dashboard_Speed_meter_scale_2, 10, lv_color_hex(0x1f1f1f), 6);
+    lv_meter_set_indicator_value(ui->dashboard_Speed_meter, ui->dashboard_Speed_meter_scale_2_ndline_0, 0);
     lv_obj_set_pos(ui->dashboard_Speed_meter, 103, 37);
     lv_obj_set_size(ui->dashboard_Speed_meter, 274, 274);
 
@@ -385,7 +401,7 @@ void setup_scr_dashboard(lv_ui *ui)
 #if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
     lv_obj_add_event_cb(ui->dashboard_Battery_proc_text, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
 #endif
-    lv_obj_set_pos(ui->dashboard_Battery_proc_text, 357, 166);
+    lv_obj_set_pos(ui->dashboard_Battery_proc_text, 353, 166);
     lv_obj_set_size(ui->dashboard_Battery_proc_text, 107, 51);
 
     //Write style for dashboard_Battery_proc_text, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -531,7 +547,7 @@ void setup_scr_dashboard(lv_ui *ui)
 #if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
     lv_obj_add_event_cb(ui->dashboard_Voltage_text, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
 #endif
-    lv_obj_set_pos(ui->dashboard_Voltage_text, 347, 46);
+    lv_obj_set_pos(ui->dashboard_Voltage_text, 347, 30);
     lv_obj_set_size(ui->dashboard_Voltage_text, 107, 51);
 
     //Write style for dashboard_Voltage_text, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -569,7 +585,7 @@ void setup_scr_dashboard(lv_ui *ui)
 #if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
     lv_obj_add_event_cb(ui->dashboard_ta_6, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
 #endif
-    lv_obj_set_pos(ui->dashboard_ta_6, 356, 22);
+    lv_obj_set_pos(ui->dashboard_ta_6, 356, 6);
     lv_obj_set_size(ui->dashboard_ta_6, 119, 40);
 
     //Write style for dashboard_ta_6, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -604,8 +620,8 @@ void setup_scr_dashboard(lv_ui *ui)
 #if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
     lv_obj_add_event_cb(ui->dashboard_ta_7, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
 #endif
-    lv_obj_set_pos(ui->dashboard_ta_7, 376, 164);
-    lv_obj_set_size(ui->dashboard_ta_7, 103, 47);
+    lv_obj_set_pos(ui->dashboard_ta_7, 372, 165);
+    lv_obj_set_size(ui->dashboard_ta_7, 102, 46);
 
     //Write style for dashboard_ta_7, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_text_color(ui->dashboard_ta_7, lv_color_hex(0x8e97a6), LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -639,7 +655,7 @@ void setup_scr_dashboard(lv_ui *ui)
 #if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
     lv_obj_add_event_cb(ui->dashboard_ta_8, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
 #endif
-    lv_obj_set_pos(ui->dashboard_ta_8, 373, 49);
+    lv_obj_set_pos(ui->dashboard_ta_8, 373, 33);
     lv_obj_set_size(ui->dashboard_ta_8, 103, 47);
 
     //Write style for dashboard_ta_8, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -674,7 +690,7 @@ void setup_scr_dashboard(lv_ui *ui)
 #if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
     lv_obj_add_event_cb(ui->dashboard_ta_9, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
 #endif
-    lv_obj_set_pos(ui->dashboard_ta_9, 8, 22);
+    lv_obj_set_pos(ui->dashboard_ta_9, 8, 6);
     lv_obj_set_size(ui->dashboard_ta_9, 202, 51);
 
     //Write style for dashboard_ta_9, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -709,7 +725,7 @@ void setup_scr_dashboard(lv_ui *ui)
 #if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
     lv_obj_add_event_cb(ui->dashboard_ta_10, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
 #endif
-    lv_obj_set_pos(ui->dashboard_ta_10, -5, 49);
+    lv_obj_set_pos(ui->dashboard_ta_10, -5, 33);
     lv_obj_set_size(ui->dashboard_ta_10, 103, 47);
 
     //Write style for dashboard_ta_10, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -744,7 +760,7 @@ void setup_scr_dashboard(lv_ui *ui)
 #if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
     lv_obj_add_event_cb(ui->dashboard_Current_text, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
 #endif
-    lv_obj_set_pos(ui->dashboard_Current_text, -33, 46);
+    lv_obj_set_pos(ui->dashboard_Current_text, -33, 30);
     lv_obj_set_size(ui->dashboard_Current_text, 107, 51);
 
     //Write style for dashboard_Current_text, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -890,12 +906,12 @@ void setup_scr_dashboard(lv_ui *ui)
 #if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
     lv_obj_add_event_cb(ui->dashboard_Ah_text, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
 #endif
-    lv_obj_set_pos(ui->dashboard_Ah_text, 148, 7);
+    lv_obj_set_pos(ui->dashboard_Ah_text, -44, 63);
     lv_obj_set_size(ui->dashboard_Ah_text, 107, 51);
 
     //Write style for dashboard_Ah_text, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_text_color(ui->dashboard_Ah_text, lv_color_hex(0xffffff), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->dashboard_Ah_text, &lv_font_Montserrat_I_26, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->dashboard_Ah_text, &lv_font_Montserrat_I_20, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui->dashboard_Ah_text, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_letter_space(ui->dashboard_Ah_text, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui->dashboard_Ah_text, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -928,12 +944,12 @@ void setup_scr_dashboard(lv_ui *ui)
 #if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
     lv_obj_add_event_cb(ui->dashboard_Ah_const_text, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
 #endif
-    lv_obj_set_pos(ui->dashboard_Ah_const_text, 184, 10);
-    lv_obj_set_size(ui->dashboard_Ah_const_text, 103, 47);
+    lv_obj_set_pos(ui->dashboard_Ah_const_text, -15, 66);
+    lv_obj_set_size(ui->dashboard_Ah_const_text, 103, 46);
 
     //Write style for dashboard_Ah_const_text, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_text_color(ui->dashboard_Ah_const_text, lv_color_hex(0x8e97a6), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->dashboard_Ah_const_text, &lv_font_Montserrat_I_18, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->dashboard_Ah_const_text, &lv_font_Montserrat_I_15, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui->dashboard_Ah_const_text, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_letter_space(ui->dashboard_Ah_const_text, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui->dashboard_Ah_const_text, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -1068,12 +1084,12 @@ void setup_scr_dashboard(lv_ui *ui)
 #if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
     lv_obj_add_event_cb(ui->dashboard_temp_mot_text, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
 #endif
-    lv_obj_set_pos(ui->dashboard_temp_mot_text, -63, 142);
+    lv_obj_set_pos(ui->dashboard_temp_mot_text, -63, 144);
     lv_obj_set_size(ui->dashboard_temp_mot_text, 107, 51);
 
     //Write style for dashboard_temp_mot_text, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_text_color(ui->dashboard_temp_mot_text, lv_color_hex(0xffffff), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->dashboard_temp_mot_text, &lv_font_Montserrat_I_20, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->dashboard_temp_mot_text, &lv_font_Montserrat_I_26, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui->dashboard_temp_mot_text, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_letter_space(ui->dashboard_temp_mot_text, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui->dashboard_temp_mot_text, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -1106,12 +1122,12 @@ void setup_scr_dashboard(lv_ui *ui)
 #if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
     lv_obj_add_event_cb(ui->dashboard_temp_esc_text, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
 #endif
-    lv_obj_set_pos(ui->dashboard_temp_esc_text, -63, 192);
+    lv_obj_set_pos(ui->dashboard_temp_esc_text, -63, 194);
     lv_obj_set_size(ui->dashboard_temp_esc_text, 107, 51);
 
     //Write style for dashboard_temp_esc_text, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_text_color(ui->dashboard_temp_esc_text, lv_color_hex(0xffffff), LV_PART_MAIN|LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui->dashboard_temp_esc_text, &lv_font_Montserrat_I_20, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->dashboard_temp_esc_text, &lv_font_Montserrat_I_26, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui->dashboard_temp_esc_text, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_letter_space(ui->dashboard_temp_esc_text, 1, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui->dashboard_temp_esc_text, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -1406,6 +1422,56 @@ void setup_scr_dashboard(lv_ui *ui)
     lv_obj_set_style_bg_grad_dir(ui->dashboard_esc_not_connected_text, LV_GRAD_DIR_NONE, LV_PART_SCROLLBAR|LV_STATE_DEFAULT);
     lv_obj_set_style_radius(ui->dashboard_esc_not_connected_text, 0, LV_PART_SCROLLBAR|LV_STATE_DEFAULT);
 
+    //Write codes dashboard_cruise_control_img
+    ui->dashboard_cruise_control_img = lv_img_create(ui->dashboard_tileview_1_tile);
+    lv_obj_add_flag(ui->dashboard_cruise_control_img, LV_OBJ_FLAG_CLICKABLE);
+    lv_img_set_src(ui->dashboard_cruise_control_img, &_cruise_control_alpha_38x38);
+    lv_img_set_pivot(ui->dashboard_cruise_control_img, 0,0);
+    lv_img_set_angle(ui->dashboard_cruise_control_img, 0);
+    lv_obj_set_pos(ui->dashboard_cruise_control_img, 219, 98);
+    lv_obj_set_size(ui->dashboard_cruise_control_img, 38, 38);
+
+    //Write style for dashboard_cruise_control_img, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_img_recolor_opa(ui->dashboard_cruise_control_img, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_img_opa(ui->dashboard_cruise_control_img, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->dashboard_cruise_control_img, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_clip_corner(ui->dashboard_cruise_control_img, true, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write codes dashboard_mode_text
+    ui->dashboard_mode_text = lv_textarea_create(ui->dashboard_tileview_1_tile);
+    lv_textarea_set_text(ui->dashboard_mode_text, "");
+    lv_textarea_set_placeholder_text(ui->dashboard_mode_text, "");
+    lv_textarea_set_password_bullet(ui->dashboard_mode_text, "*");
+    lv_textarea_set_password_mode(ui->dashboard_mode_text, false);
+    lv_textarea_set_one_line(ui->dashboard_mode_text, true);
+    lv_textarea_set_accepted_chars(ui->dashboard_mode_text, "");
+    lv_textarea_set_max_length(ui->dashboard_mode_text, 32);
+#if LV_USE_KEYBOARD != 0 || LV_USE_ZH_KEYBOARD != 0
+    lv_obj_add_event_cb(ui->dashboard_mode_text, ta_event_cb, LV_EVENT_ALL, ui->g_kb_top_layer);
+#endif
+    lv_obj_set_pos(ui->dashboard_mode_text, 139, 6);
+    lv_obj_set_size(ui->dashboard_mode_text, 202, 51);
+
+    //Write style for dashboard_mode_text, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_text_color(ui->dashboard_mode_text, lv_color_hex(0x2FCADA), LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui->dashboard_mode_text, &lv_font_Montserrat_I_24, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui->dashboard_mode_text, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_letter_space(ui->dashboard_mode_text, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui->dashboard_mode_text, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui->dashboard_mode_text, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(ui->dashboard_mode_text, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_width(ui->dashboard_mode_text, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->dashboard_mode_text, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui->dashboard_mode_text, 2, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui->dashboard_mode_text, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->dashboard_mode_text, 4, LV_PART_MAIN|LV_STATE_DEFAULT);
+
+    //Write style for dashboard_mode_text, Part: LV_PART_SCROLLBAR, State: LV_STATE_DEFAULT.
+    lv_obj_set_style_bg_opa(ui->dashboard_mode_text, 255, LV_PART_SCROLLBAR|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui->dashboard_mode_text, lv_color_hex(0x2195f6), LV_PART_SCROLLBAR|LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_grad_dir(ui->dashboard_mode_text, LV_GRAD_DIR_NONE, LV_PART_SCROLLBAR|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->dashboard_mode_text, 0, LV_PART_SCROLLBAR|LV_STATE_DEFAULT);
+
     //Write codes dashboard_slider_1
     ui->dashboard_slider_1 = lv_slider_create(ui->dashboard);
     lv_slider_set_range(ui->dashboard_slider_1, -60, 60);
@@ -1550,6 +1616,7 @@ void setup_scr_dashboard(lv_ui *ui)
     lv_img_set_angle(ui->dashboard_navigation_icon, 0);
     lv_obj_set_pos(ui->dashboard_navigation_icon, 0, 340);
     lv_obj_set_size(ui->dashboard_navigation_icon, 121, 121);
+    lv_obj_add_flag(ui->dashboard_navigation_icon, LV_OBJ_FLAG_HIDDEN);
 
     //Write style for dashboard_navigation_icon, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_radius(ui->dashboard_navigation_icon, 0, LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -1571,6 +1638,7 @@ void setup_scr_dashboard(lv_ui *ui)
 #endif
     lv_obj_set_pos(ui->dashboard_navigation_text, 110, 350);
     lv_obj_set_size(ui->dashboard_navigation_text, 360, 60);
+    lv_obj_add_flag(ui->dashboard_navigation_text, LV_OBJ_FLAG_HIDDEN);
 
     //Write style for dashboard_navigation_text, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_text_color(ui->dashboard_navigation_text, lv_color_hex(0xffffff), LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -1658,7 +1726,6 @@ void setup_scr_dashboard(lv_ui *ui)
     lv_obj_set_size(ui->dashboard_symbols, 480, 122);
 
     //Write style for dashboard_symbols, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
-    lv_obj_set_style_radius(ui->dashboard_symbols, 4, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_color(ui->dashboard_symbols, lv_color_hex(0x000000), LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui->dashboard_symbols, &lv_font_montserratMedium_20, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui->dashboard_symbols, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -1675,6 +1742,7 @@ void setup_scr_dashboard(lv_ui *ui)
     lv_obj_set_style_pad_top(ui->dashboard_symbols, 4, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui->dashboard_symbols, 4, LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui->dashboard_symbols, 4, LV_PART_MAIN|LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui->dashboard_symbols, 4, LV_PART_MAIN|LV_STATE_DEFAULT);
 
     //Write style for dashboard_symbols, Part: LV_PART_SCROLLBAR, State: LV_STATE_DEFAULT.
     lv_obj_set_style_bg_opa(ui->dashboard_symbols, 255, LV_PART_SCROLLBAR|LV_STATE_DEFAULT);
