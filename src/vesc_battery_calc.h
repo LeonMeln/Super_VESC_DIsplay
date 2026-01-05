@@ -12,6 +12,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Initialize battery calculation module (loads saved state from NVS)
 void battery_calc_init(void);
 
@@ -51,6 +55,10 @@ void battery_calc_reset_trip_and_ah(void);
 // Get remaining battery capacity in Ah
 // Returns: Remaining capacity in Ah (used for range calculation)
 float battery_calc_get_remaining_ah(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* VESC_BATTERY_CALC_H_ */
 

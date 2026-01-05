@@ -36,6 +36,11 @@ void update_esc_connection_status(bool connected);
 void update_navigation_icon(const uint8_t *img_data, uint32_t data_size, uint16_t width, uint16_t height, lv_img_cf_t color_format);
 void update_navigation_text(const char *text);
 void update_music_text(const char *text);
+void update_cruise_control_status(bool active);
+void update_cruise_speed(float speed);
+void update_mode_text(uint8_t mode);
+void reset_icon_pressed(void);
+
 #ifdef __cplusplus
 }
 #endif

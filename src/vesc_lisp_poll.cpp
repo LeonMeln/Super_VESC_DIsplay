@@ -13,6 +13,7 @@
 #include <Arduino.h>
 #include <string.h>
 #include "debug_log.h"
+#include "../../Super_VESC_Display/custom/custom.h"
 
 #define SELECTED_VARIABLES_ENABLED 1
 
@@ -163,22 +164,25 @@ void vesc_lisp_poll_process_response(unsigned char *data, unsigned int len) {
 	int32_t cruise_active_int = 0;
 	if (vesc_lisp_poll_get_variable_int("cruise-active", &cruise_active_int)) {
 		LOG_INFO(LISP_POLL, "cruise-active = %d\n", cruise_active_int);
+		update_cruise_control_status(cruise_active_int);
 	}
 	else {
 		LOG_INFO(LISP_POLL, "cruise-active = NOT FOUND\n");
 	}
 	
 	// Find and print cruise-rpm
-	float cruise_rpm_float = 0.0f;
-	if (vesc_lisp_poll_get_variable_float("cruise-rpm", &cruise_rpm_float)) {
-		LOG_INFO(LISP_POLL, "cruise-rpm = %.6f\n", cruise_rpm_float);
+	float cruise_kmh_float = 0.0f;
+	if (vesc_lisp_poll_get_variable_float("cruise-kmh", &cruise_kmh_float)) {
+		LOG_INFO(LISP_POLL, "cruise-kmh = %.6f\n", cruise_kmh_float);
+		update_cruise_speed(cruise_kmh_float);
 	} else {
-		LOG_INFO(LISP_POLL, "cruise-rpm = NOT FOUND\n");
+		LOG_INFO(LISP_POLL, "cruise-kmh = NOT FOUND\n");
 	}
 
-	int32_t current-profile_int = 0;
-	if (vesc_lisp_poll_get_variable_int("current-profile", &current-profile_int)) {
-		LOG_INFO(LISP_POLL, "current-profile = %d\n", current-profile_int);
+	int32_t current_profile_int = 0;
+	if (vesc_lisp_poll_get_variable_int("current-profile", &current_profile_int)) {
+		LOG_INFO(LISP_POLL, "current-profile = %d\n", current_profile_int);
+		update_mode_text(current_profile_int);
 	}
 	else {
 		LOG_INFO(LISP_POLL, "current-profile = NOT FOUND\n");

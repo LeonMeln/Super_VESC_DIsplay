@@ -20,6 +20,8 @@
 
 #ifdef LV_REALDEVICE
 #include "vesc_limits.h"
+#include "vesc_battery_calc.h"
+int cruise_active = 0;
 #endif
 
 /*********************
@@ -115,6 +117,17 @@ void custom_init(lv_ui *ui)
     if (ui->dashboard_esc_not_connected_text != NULL) {
         lv_obj_add_flag(ui->dashboard_esc_not_connected_text, LV_OBJ_FLAG_HIDDEN);
     }
+
+    // Initialize cruise-active label as hidden (will be shown when cruise-active is true)
+    if (ui->dashboard_cruise_control_img != NULL) {
+        lv_obj_add_flag(ui->dashboard_cruise_control_img, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    // Initialize cruise-rpm label as hidden (will be shown when cruise-rpm is true)
+    if (ui->dashboard_Speed_meter_scale_1_ndline_0 != NULL) {
+        lv_meter_set_indicator_value(ui->dashboard_Speed_meter, ui->dashboard_Speed_meter_scale_1_ndline_0, -1);
+        lv_meter_set_indicator_value(ui->dashboard_Speed_meter, ui->dashboard_Speed_meter_scale_2_ndline_0, -1);  
+    }
     
 }
 
@@ -146,6 +159,13 @@ static const void * lv_demo_music_get_list_img(uint32_t track_id)
 void music_album_next(bool next)
 {
    
+}
+
+void reset_icon_pressed(void)
+{
+    #ifdef LV_REALDEVICE
+    battery_calc_reset_trip_and_ah();
+    #endif
 }
 
 void update_current(float current)
@@ -193,6 +213,26 @@ void update_speed(float speed)
     sprintf(text,"%d", value);
     lv_textarea_set_text(guider_ui.dashboard_Speed_text,text);
 }
+
+void update_cruise_speed(float speed)
+{
+    if (cruise_active == 0) {
+        return;
+    }
+    static float old_value = -999.0f;
+    if (speed == old_value) {
+        return;
+    }
+    if (speed < 0) {
+        return;
+    }
+    old_value = speed;
+    
+    int value = speed;
+    
+    lv_meter_set_indicator_value(guider_ui.dashboard_Speed_meter, guider_ui.dashboard_Speed_meter_scale_1_ndline_0, value);
+}
+
 
 void update_battery_proc(float battery_proc)
 {
@@ -370,6 +410,19 @@ void update_uptime(uint32_t uptime)
     lv_textarea_set_text(guider_ui.dashboard_uptime_text,text);
 }
 
+void update_mode_text(uint8_t mode)
+{
+    static uint8_t old_mode = -1;
+    if (mode == old_mode) {
+        return;
+    }
+    old_mode = mode;
+    
+    char text[20];
+    sprintf(text,"MODE %d", mode+1);
+    lv_textarea_set_text(guider_ui.dashboard_mode_text,text);
+}
+
 void update_ble_status(bool connected)
 {
     static bool old_state = false;
@@ -386,6 +439,25 @@ void update_ble_status(bool connected)
     }
 }
 
+void update_cruise_control_status(bool active)
+{
+    static bool old_state = false;
+    if (active == old_state) {
+        return;
+    }
+    old_state = active;
+    
+    // Show/hide BLE icon based on connection status
+    if (active) {
+        lv_obj_clear_flag(guider_ui.dashboard_cruise_control_img, LV_OBJ_FLAG_HIDDEN);
+        cruise_active = 1;
+    } else {
+        lv_meter_set_indicator_value(guider_ui.dashboard_Speed_meter, guider_ui.dashboard_Speed_meter_scale_1_ndline_0, -1);       
+        lv_obj_add_flag(guider_ui.dashboard_cruise_control_img, LV_OBJ_FLAG_HIDDEN);
+        cruise_active = 0;
+    }
+}
+
 void update_esc_connection_status(bool connected)
 {
     static bool old_state = true;
@@ -398,13 +470,15 @@ void update_esc_connection_status(bool connected)
         if (connected) {
             // ESC connected - hide warning text
             lv_obj_add_flag(guider_ui.dashboard_esc_not_connected_text, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(guider_ui.dashboard_Ah_const_text, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(guider_ui.dashboard_Ah_text, LV_OBJ_FLAG_HIDDEN);
+            //lv_obj_clear_flag(guider_ui.dashboard_Ah_const_text, LV_OBJ_FLAG_HIDDEN);
+            //lv_obj_clear_flag(guider_ui.dashboard_Ah_text, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(guider_ui.dashboard_mode_text, LV_OBJ_FLAG_HIDDEN);
         } else {
             // ESC disconnected - show warning text (will start blinking)
             lv_obj_clear_flag(guider_ui.dashboard_esc_not_connected_text, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(guider_ui.dashboard_Ah_text, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(guider_ui.dashboard_Ah_const_text, LV_OBJ_FLAG_HIDDEN);
+            //lv_obj_add_flag(guider_ui.dashboard_Ah_text, LV_OBJ_FLAG_HIDDEN);
+            //lv_obj_add_flag(guider_ui.dashboard_Ah_const_text, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(guider_ui.dashboard_mode_text, LV_OBJ_FLAG_HIDDEN);
             blink_state = true;
         }
     }
@@ -419,13 +493,15 @@ void update_esc_connection_status(bool connected)
             blink_state = !blink_state;
             
             if (blink_state) {
-                lv_obj_add_flag(guider_ui.dashboard_Ah_text, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_add_flag(guider_ui.dashboard_Ah_const_text, LV_OBJ_FLAG_HIDDEN);
+                //lv_obj_add_flag(guider_ui.dashboard_Ah_text, LV_OBJ_FLAG_HIDDEN);
+                //lv_obj_add_flag(guider_ui.dashboard_Ah_const_text, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_clear_flag(guider_ui.dashboard_esc_not_connected_text, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(guider_ui.dashboard_mode_text, LV_OBJ_FLAG_HIDDEN);
             } else {
                 lv_obj_add_flag(guider_ui.dashboard_esc_not_connected_text, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_clear_flag(guider_ui.dashboard_Ah_const_text, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_clear_flag(guider_ui.dashboard_Ah_text, LV_OBJ_FLAG_HIDDEN);
+                //lv_obj_clear_flag(guider_ui.dashboard_Ah_const_text, LV_OBJ_FLAG_HIDDEN);
+                //lv_obj_clear_flag(guider_ui.dashboard_Ah_text, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_flag(guider_ui.dashboard_mode_text, LV_OBJ_FLAG_HIDDEN);
             }
         }
     }
