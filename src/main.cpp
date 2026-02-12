@@ -66,6 +66,21 @@ static constexpr uint8_t TCA_REG_OUTPUT = 0x01;
 static constexpr uint8_t TCA_REG_POLINV = 0x02;
 static constexpr uint8_t TCA_REG_CONFIG = 0x03;
 
+#include <Wire.h>
+
+// ------------------------------
+// Waveshare ESP32-S3-Touch-LCD-4 board specifics
+// ------------------------------
+static constexpr uint8_t  TCA_ADDR     = 0x24;
+static constexpr uint8_t  EXIO_I2C_SDA = 15;
+static constexpr uint8_t  EXIO_I2C_SCL = 7;
+
+// TCA9554 registers
+static constexpr uint8_t TCA_REG_INPUT  = 0x00;
+static constexpr uint8_t TCA_REG_OUTPUT = 0x01;
+static constexpr uint8_t TCA_REG_POLINV = 0x02;
+static constexpr uint8_t TCA_REG_CONFIG = 0x03;
+
 // Brightness monitoring variables
 static uint8_t last_brightness = 0;
 static unsigned long last_brightness_check = 0;
@@ -190,11 +205,112 @@ static void board_display_powerup_sequence() {
   dumpTCA("after_powerup");
 }
 
+// ------------------------------
+// TCA9554 helpers
+// ------------------------------
+static bool tca_write(uint8_t reg, uint8_t val) {
+  Wire.beginTransmission(TCA_ADDR);
+  Wire.write(reg);
+  Wire.write(val);
+  return (Wire.endTransmission() == 0);
+}
+
+static uint8_t tca_read(uint8_t reg) {
+  Wire.beginTransmission(TCA_ADDR);
+  Wire.write(reg);
+  if (Wire.endTransmission(false) != 0) {
+    return 0xFF;
+  }
+  Wire.requestFrom(TCA_ADDR, (uint8_t)1);
+  return Wire.available() ? Wire.read() : 0xFF;
+}
+
+static void dumpTCA(const char* tag) {
+  Serial.printf("[TCA %s] IN=0x%02X OUT=0x%02X POL=0x%02X CFG=0x%02X\n",
+                tag,
+                tca_read(TCA_REG_INPUT),
+                tca_read(TCA_REG_OUTPUT),
+                tca_read(TCA_REG_POLINV),
+                tca_read(TCA_REG_CONFIG));
+}
+
+// ------------------------------
+// Power-up sequence (improved)
+// ------------------------------
+static constexpr uint8_t BIT_P0 = (1u << 0);
+static constexpr uint8_t BIT_P1 = (1u << 1);
+static constexpr uint8_t BIT_P2 = (1u << 2);
+static constexpr uint8_t BIT_P3 = (1u << 3);
+static constexpr uint8_t BIT_P4 = (1u << 4);
+static constexpr uint8_t BIT_P5 = (1u << 5);
+static constexpr uint8_t BIT_P6 = (1u << 6);
+static constexpr uint8_t BIT_P7 = (1u << 7);
+
+// We keep P0..P2 as outputs (common: LCD_RST, TP_RST, BL_EN). Others remain inputs for safety.
+static constexpr uint8_t TCA_OUTPUT_MASK = (BIT_P0 | BIT_P1 | BIT_P2);
+
+// Baseline outputs: all selected outputs HIGH (BL on + resets released)
+static constexpr uint8_t TCA_BASELINE_OUT = TCA_OUTPUT_MASK;
+
+static void tca_apply_safe_config() {
+  // Polarity: no inversion
+  tca_write(TCA_REG_POLINV, 0x00);
+
+  // Config: 1=input, 0=output
+  // Make only P0..P2 outputs, all others inputs.
+  uint8_t cfg = 0xFF;
+  cfg &= ~TCA_OUTPUT_MASK;
+  tca_write(TCA_REG_CONFIG, cfg);
+
+  // Baseline outputs
+  uint8_t out = tca_read(TCA_REG_OUTPUT);
+  out &= ~TCA_OUTPUT_MASK;
+  out |=  TCA_BASELINE_OUT;
+  tca_write(TCA_REG_OUTPUT, out);
+}
+
+static void tca_pulse_low(uint8_t bit, uint16_t low_ms, uint16_t settle_ms) {
+  uint8_t out = tca_read(TCA_REG_OUTPUT);
+  // drive selected bit low
+  tca_write(TCA_REG_OUTPUT, (uint8_t)(out & ~bit));
+  delay(low_ms);
+  // release back high
+  tca_write(TCA_REG_OUTPUT, (uint8_t)(out | bit));
+  delay(settle_ms);
+}
+
+static void board_display_powerup_sequence() {
+  Wire.begin(EXIO_I2C_SDA, EXIO_I2C_SCL);
+  delay(80);
+
+  // Check TCA presence
+  if (!tca_write(TCA_REG_POLINV, 0x00)) {
+    Serial.println("[TCA] no ACK. Skipping EXIO powerup.");
+    return;
+  }
+
+  // Apply safe config (only a few outputs)
+  tca_apply_safe_config();
+
+  // Cold boot settle time for panel power rails
+  delay(250);
+
+  // Typical reset pulses on P0 and P1
+  tca_pulse_low(BIT_P0, 20, 150);  // candidate: LCD_RST
+  tca_pulse_low(BIT_P1, 10, 100);  // candidate: TP_RST
+
+  dumpTCA("after_powerup");
+}
+
 void setup()
 {
   Serial.begin(115200);
   delay(100);
+  delay(100);
   LOG_INFO(SYSTEM, "VESC Display Starting...");
+
+  // MUST be first: EXIO/TCA power-up on SDA=15 SCL=7
+  board_display_powerup_sequence();
 
   // MUST be first: EXIO/TCA power-up on SDA=15 SCL=7
   board_display_powerup_sequence();
