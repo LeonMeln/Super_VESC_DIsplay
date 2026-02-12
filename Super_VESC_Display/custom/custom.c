@@ -1259,7 +1259,7 @@ void settings_ui_init(lv_ui *ui) {
     lv_obj_add_event_cb(settings_battery_calc_mode_dropdown, battery_calc_mode_dropdown_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
     
     y_pos += spacing + 10;
-    /*
+    
     // ========== VESC LIMITS SECTION ==========
     // Title
     settings_limits_title_label = lv_label_create(ui->settings);
@@ -1466,7 +1466,7 @@ void settings_ui_init(lv_ui *ui) {
     lv_obj_set_style_text_font(settings_limits_status_label, &lv_font_montserrat_24, 0);
     
     y_pos += spacing;
-    */
+    
     /*
     // ========== Brightness Slider ==========
     settings_brightness_label = lv_label_create(ui->settings);
@@ -1537,7 +1537,7 @@ void settings_ui_init(lv_ui *ui) {
     lv_obj_add_event_cb(settings_show_fps_switch, show_fps_switch_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
     
     y_pos += spacing;
-    /*
+    
     // ========== Wheel Diameter Spinbox ==========
     uint16_t wheel_diameter = settings_wrapper_get_wheel_diameter_mm();
     
@@ -1653,7 +1653,7 @@ void settings_ui_init(lv_ui *ui) {
     lv_obj_add_event_cb(settings_motor_poles_plus_btn, motor_poles_plus_btn_event_cb, LV_EVENT_CLICKED, NULL);
 
     y_pos += spacing;
-*/
+
     // ========== Reset Button ==========
     settings_reset_button = lv_btn_create(ui->settings);
     lv_obj_t *reset_label = lv_label_create(settings_reset_button);
