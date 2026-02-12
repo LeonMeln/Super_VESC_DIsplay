@@ -55,6 +55,14 @@
 
 #include <Wire.h>
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+
+SemaphoreHandle_t g_i2c_mutex = nullptr;
+
+static inline void i2c_lock()   { if (g_i2c_mutex) xSemaphoreTake(g_i2c_mutex, portMAX_DELAY); }
+static inline void i2c_unlock() { if (g_i2c_mutex) xSemaphoreGive(g_i2c_mutex); }
+
 // ------------------------------
 // Waveshare ESP32-S3-Touch-LCD-4 board specifics
 // ------------------------------
@@ -101,36 +109,46 @@ void check_brightness_changes(void) {
 // I2C guard (prevents display/touch from breaking)
 // ------------------------------
 static bool g_wire_started = false;
+
 static void wire_begin_once(int sda, int scl) {
-  if (g_wire_started) {
-    // Do NOT re-init Wire with different pins (will break panel/touch on this board)
-    return;
-  }
+  if (g_wire_started) return;
   Wire.begin(sda, scl);
+  Wire.setTimeOut(50);      // helps avoid "sticky" bus
+  // Wire.setClock(100000); // максимально надёжно, если нужно
   g_wire_started = true;
 }
 
 // ------------------------------
 // TCA9554 helpers
 // ------------------------------
+static bool g_tca_ok = false;
+
 static bool tca_write(uint8_t reg, uint8_t val) {
+  i2c_lock();
   Wire.beginTransmission(TCA_ADDR);
   Wire.write(reg);
   Wire.write(val);
-  return (Wire.endTransmission() == 0);
+  bool ok = (Wire.endTransmission() == 0);
+  i2c_unlock();
+  return ok;
 }
 
 static uint8_t tca_read(uint8_t reg) {
+  i2c_lock();
   Wire.beginTransmission(TCA_ADDR);
   Wire.write(reg);
   if (Wire.endTransmission(false) != 0) {
+    i2c_unlock();
     return 0xFF;
   }
   Wire.requestFrom(TCA_ADDR, (uint8_t)1);
-  return Wire.available() ? Wire.read() : 0xFF;
+  uint8_t v = Wire.available() ? Wire.read() : 0xFF;
+  i2c_unlock();
+  return v;
 }
 
 static void dumpTCA(const char* tag) {
+  if (!g_tca_ok) return;
   Serial.printf("[TCA %s] IN=0x%02X OUT=0x%02X POL=0x%02X CFG=0x%02X\n",
                 tag,
                 tca_read(TCA_REG_INPUT),
@@ -164,19 +182,11 @@ static void tca_apply_safe_config() {
 
   // Baseline outputs
   uint8_t out = tca_read(TCA_REG_OUTPUT);
+  if (out == 0xFF) out = 0x00;
+
   out &= ~TCA_OUTPUT_MASK;
   out |=  TCA_BASELINE_OUT;
   tca_write(TCA_REG_OUTPUT, out);
-}
-
-static void tca_pulse_low(uint8_t bit, uint16_t low_ms, uint16_t settle_ms) {
-  uint8_t out = tca_read(TCA_REG_OUTPUT);
-  // drive selected bit low
-  tca_write(TCA_REG_OUTPUT, (uint8_t)(out & ~bit));
-  delay(low_ms);
-  // release back high
-  tca_write(TCA_REG_OUTPUT, (uint8_t)(out | bit));
-  delay(settle_ms);
 }
 
 /**
@@ -191,35 +201,51 @@ static void tca_pulse_low(uint8_t bit, uint16_t low_ms, uint16_t settle_ms) {
  */
 static void board_display_powerup_sequence() {
   wire_begin_once(EXIO_I2C_SDA, EXIO_I2C_SCL);
-  delay(80);
+  delay(10);
 
-  // Check TCA presence
-  if (!tca_write(TCA_REG_POLINV, 0x00)) {
+  // Probe TCA once
+  g_tca_ok = tca_write(TCA_REG_POLINV, 0x00);
+  if (!g_tca_ok) {
     Serial.println("[TCA] no ACK. Skipping EXIO powerup.");
     return;
   }
 
-  // Apply safe config (only a few outputs)
+  // Apply safe config
   tca_apply_safe_config();
 
-  // Cold boot settle time for panel power rails
+  // Cold-boot settle time for panel power rails
   delay(250);
 
-  // Try typical reset pulses on P0 and P1 (order matters sometimes)
-  tca_pulse_low(BIT_P0, 20, 150);  // candidate: LCD_RST
-  tca_pulse_low(BIT_P1, 10, 100);  // candidate: TP_RST
+  // Use cached OUT image (avoid readback during cold boot)
+  uint8_t out = tca_read(TCA_REG_OUTPUT);
+  if (out == 0xFF) out = 0x00;
+  out &= ~TCA_OUTPUT_MASK;
+  out |=  TCA_BASELINE_OUT;
+  tca_write(TCA_REG_OUTPUT, out);
+
+  // LCD_RST pulse (P0)
+  tca_write(TCA_REG_OUTPUT, (uint8_t)(out & ~BIT_P0));
+  delay(20);
+  tca_write(TCA_REG_OUTPUT, (uint8_t)(out |  BIT_P0));
+  delay(150);
+
+  // TP_RST pulse (P1)
+  tca_write(TCA_REG_OUTPUT, (uint8_t)(out & ~BIT_P1));
+  delay(10);
+  tca_write(TCA_REG_OUTPUT, (uint8_t)(out |  BIT_P1));
+  delay(100);
 
   dumpTCA("after_powerup");
 }
 
 // ------------------------------
-// Banner printing (aligned + emoji-safe)
+// Banner printing (aligned + emoji-safe-ish)
 // ------------------------------
+// NOTE: Emoji width differs between terminals. Best practice:
+// keep emoji on their own lines only (we do that).
 static void print_can_banner(uint8_t vesc_can_id, int can_speed) {
-  // IMPORTANT: keep strings mostly ASCII for alignment.
-  // Emoji can have variable width in terminals; keep them only in fixed-position lines.
-  LOG_RAW("\n╔═══════════════════════════════════════════════╗\n");
-  LOG_RAW("║        🚀 CAN Communication Started 🚀        ║\n");
+   LOG_RAW("\n╔═══════════════════════════════════════════════╗\n");
+  LOG_RAW("║      🚀 CAN Communication Started 🚀          ║\n");
   LOG_RAW("╠═══════════════════════════════════════════════╣\n");
   LOG_RAW("║ Hardware:           %-25s ║\n", HW_NAME);
   LOG_RAW("║ Firmware:           v%d.%02d                     ║\n", FW_VERSION_MAJOR, FW_VERSION_MINOR);
@@ -231,10 +257,13 @@ static void print_can_banner(uint8_t vesc_can_id, int can_speed) {
   LOG_RAW("║ TX Pin:             GPIO 6                    ║\n");
   LOG_RAW("║ RX Pin:             GPIO 0                    ║\n");
   LOG_RAW("╠═══════════════════════════════════════════════╣\n");
+  
+  // Display BLE Bridge mode info
   LOG_RAW("║ 🌉 BLE Mode:        BRIDGE (vesc_express)     ║\n");
   LOG_RAW("║ 📱 BLE Device:      SuperVESCDisplay          ║\n");
   LOG_RAW("║ 📋 Local Commands:  ENABLED (ID=%3d)          ║\n", vesc_can_id);
   LOG_RAW("║ 🔄 CAN Forwarding:  ENABLED (all other IDs)   ║\n");
+  
   LOG_RAW("╚═══════════════════════════════════════════════╝\n");
   LOG_RAW("\n⏳ Waiting for BLE/CAN messages...\n\n");
 }
@@ -244,6 +273,9 @@ static void print_can_banner(uint8_t vesc_can_id, int can_speed) {
 // ------------------------------
 void setup() {
   Serial.begin(115200);
+
+  g_i2c_mutex = xSemaphoreCreateMutex();
+
   delay(150);
   LOG_INFO(SYSTEM, "VESC Display Starting...");
 
@@ -253,7 +285,7 @@ void setup() {
   // 2) Settings system (NVS)
   settings_init();
 
-  // 3) Display init (ST7701) — AFTER EXIO sequence
+  // 3) Display init (ST7701)
   LCD_Init();
 
   // 4) Backlight + brightness
@@ -262,7 +294,7 @@ void setup() {
   last_brightness = settings_get_screen_brightness();
   LOG_INFO(SYSTEM, "Screen brightness set to %d%%", last_brightness);
 
-  // 5) Touch init (GT911) - uses same I2C bus on this board
+  // 5) Touch init (GT911)
   if (Touch_Init()) {
     LOG_INFO(SYSTEM, "Touch screen initialized successfully!");
   } else {
@@ -271,7 +303,6 @@ void setup() {
 
   // 6) Other I2C peripherals
   // IMPORTANT: I2C_Init() MUST NOT call Wire.begin() on different pins.
-  // If it does, it can break the display/touch. If needed, move those to Wire1.
   I2C_Init();
 
   // 7) CAN init
@@ -285,18 +316,12 @@ void setup() {
 
   // 9) CAN packet handler for Bridge mode
   auto packet_handler_wrapper = [](unsigned char *data, unsigned int len) {
-    // Process RT data responses
     vesc_rt_data_process_response(data, len);
-
-    // Process LISP poll responses
     vesc_lisp_poll_process_response(data, len);
-
-    // Forward CAN responses to BLE
     BLE_OnCANResponse(data, len);
   };
   comm_can_set_packet_handler(packet_handler_wrapper);
 
-  // Print aligned banner
   print_can_banner(vesc_can_id, can_speed);
 
   // 10) Centralized BLE System Initialization
@@ -309,7 +334,6 @@ void setup() {
     if (pBLEServer == nullptr) {
       LOG_ERROR(SYSTEM, "Failed to get BLE server instance");
     } else {
-      // Initialize BLE VESC Driver (adds VESC service and characteristics)
       if (vesc_ble_driver_init(pBLEServer)) {
         LOG_INFO(SYSTEM, "BLE VESC driver initialized successfully");
         LOG_INFO(SYSTEM, "BLE response callback registered in VESC handler");
@@ -317,21 +341,18 @@ void setup() {
         LOG_ERROR(SYSTEM, "BLE VESC driver initialization failed");
       }
 
-      // Initialize OTA update module
       if (ota_update_init()) {
         LOG_INFO(SYSTEM, "OTA update module initialized successfully");
       } else {
         LOG_ERROR(SYSTEM, "OTA update module initialization failed");
       }
 
-      // Initialize music server (adds music service and characteristics)
       if (music_server_init(pBLEServer)) {
         LOG_INFO(SYSTEM, "Music server initialized successfully");
       } else {
         LOG_ERROR(SYSTEM, "Music server initialization failed");
       }
 
-      // Start advertising after all services and characteristics are added
       ble_system_start_advertising();
       LOG_INFO(SYSTEM, "BLE advertising started - all services ready");
     }
@@ -342,15 +363,12 @@ void setup() {
   ui_updater_set_zeros();
   ui_updater_init();
 
-  // Start RT data requests
   vesc_rt_data_start();
   LOG_INFO(SYSTEM, "RT data requests started");
 
-  // Start LISP poll (10 Hz)
   vesc_lisp_poll_start();
   LOG_INFO(SYSTEM, "LISP poll started (10 Hz)");
 
-  // Start UI automatic updates
   ui_updater_start();
   LOG_INFO(SYSTEM, "UI updates started");
 
@@ -358,20 +376,20 @@ void setup() {
 }
 
 void loop() {
-  vesc_ble_driver_loop();              // Process BLE communication
-  ota_update_loop();                   // Process OTA updates
-  media_control_loop();                // Process media control
-  music_server_loop();                 // Process music server
+  vesc_ble_driver_loop();   // Process BLE communication
+  ota_update_loop();        // Process OTA updates
+  media_control_loop();     // Process media control
+  music_server_loop();      // Process music server
 
   if (millis() > 5000) {
-    vesc_rt_data_loop();               // Process RT data requests
+    vesc_rt_data_loop();    // Process RT data requests
   }
-  vesc_lisp_poll_loop();               // Process LISP poll requests (10 Hz)
+  vesc_lisp_poll_loop();    // Process LISP poll requests (10 Hz)
 
-  ui_updater_update();                 // Update UI with VESC data
-  ui_updater_update_fps();             // Update FPS counter
+  ui_updater_update();      // Update UI with VESC data
+  ui_updater_update_fps();  // Update FPS counter
 
-  //check_brightness_changes();        // Check for brightness setting changes
+  //check_brightness_changes(); // Check for brightness setting changes
 
   Lvgl_Loop();
 
