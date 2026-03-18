@@ -33,10 +33,7 @@ void LCD_Init(void)
   }
   
   Serial.println("Display initialized successfully");
-  
-  // Initialize touch
-  Touch_Init();
-  
+
   // Initialize backlight
   Backlight_Init();
   
