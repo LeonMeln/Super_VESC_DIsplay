@@ -1,8 +1,6 @@
 #pragma once
 #include <Arduino.h>
 
-#include "Touch_GT911.h"
-
 // Display configuration for ESP32-S3-Touch-LCD-4
 #define LCD_WIDTH   480 //LCD width
 #define LCD_HEIGHT  480 //LCD height

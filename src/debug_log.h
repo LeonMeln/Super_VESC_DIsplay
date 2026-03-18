@@ -10,26 +10,13 @@
 // Master logging switch - set to 0 to disable ALL logging
 #define DEBUG_LOGGING_ENABLED 1
 
-// Undefine conflicting NimBLE macros if they exist
-#ifdef LOG_LEVEL_ERROR
-#undef LOG_LEVEL_ERROR
-#endif
-#ifdef LOG_LEVEL_WARN
-#undef LOG_LEVEL_WARN
-#endif
-#ifdef LOG_LEVEL_INFO
-#undef LOG_LEVEL_INFO
-#endif
-#ifdef LOG_LEVEL_DEBUG
-#undef LOG_LEVEL_DEBUG
-#endif
-
 // Individual log level controls (comment out or set to 0 to disable)
-#define LOG_LEVEL_ERROR   1  // Critical errors
-#define LOG_LEVEL_WARN    1  // Warnings
-#define LOG_LEVEL_INFO    1  // Important information
-#define LOG_LEVEL_DEBUG   1  // Debug information
-#define LOG_LEVEL_VERBOSE 0  // Verbose/detailed logs (disabled by default)
+// Using SVESC_ prefix to avoid conflicts with NimBLE's LOG_LEVEL_* macros
+#define SVESC_LOG_LEVEL_ERROR   1  // Critical errors
+#define SVESC_LOG_LEVEL_WARN    1  // Warnings
+#define SVESC_LOG_LEVEL_INFO    1  // Important information
+#define SVESC_LOG_LEVEL_DEBUG   1  // Debug information
+#define SVESC_LOG_LEVEL_VERBOSE 0  // Verbose/detailed logs (disabled by default)
 
 // Module-specific logging (set to 0 to disable specific modules)
 // BLE-UART: Communication channel between phone and ESP32 (Nordic UART Service)
@@ -62,10 +49,10 @@
 #if DEBUG_LOGGING_ENABLED
 
   // Helper macro to check if logging is enabled for a module and level
-  #define LOG_ENABLED(module, level) (LOG_##module##_ENABLED && LOG_LEVEL_##level)
+  #define LOG_ENABLED(module, level) (LOG_##module##_ENABLED && SVESC_LOG_LEVEL_##level)
 
   // Error logs (always with ❌ emoji)
-  #if LOG_LEVEL_ERROR
+  #if SVESC_LOG_LEVEL_ERROR
     #define LOG_ERROR(module, ...) \
       if (LOG_##module##_ENABLED) { \
         Serial.printf("[%lu] ❌ [%s] ", millis(), #module); \
@@ -77,7 +64,7 @@
   #endif
 
   // Warning logs (with ⚠️ emoji)
-  #if LOG_LEVEL_WARN
+  #if SVESC_LOG_LEVEL_WARN
     #define LOG_WARN(module, ...) \
       if (LOG_##module##_ENABLED) { \
         Serial.printf("[%lu] ⚠️  [%s] ", millis(), #module); \
@@ -89,7 +76,7 @@
   #endif
 
   // Info logs (with ✅ or 📋 emoji)
-  #if LOG_LEVEL_INFO
+  #if SVESC_LOG_LEVEL_INFO
     #define LOG_INFO(module, ...) \
       if (LOG_##module##_ENABLED) { \
         Serial.printf("[%lu] ✅ [%s] ", millis(), #module); \
@@ -101,7 +88,7 @@
   #endif
 
   // Debug logs (with 🔍 emoji)
-  #if LOG_LEVEL_DEBUG
+  #if SVESC_LOG_LEVEL_DEBUG
     #define LOG_DEBUG(module, ...) \
       if (LOG_##module##_ENABLED) { \
         Serial.printf("[%lu] 🔍 [%s] ", millis(), #module); \
@@ -113,7 +100,7 @@
   #endif
 
   // Verbose logs (with 📝 emoji)
-  #if LOG_LEVEL_VERBOSE
+  #if SVESC_LOG_LEVEL_VERBOSE
     #define LOG_VERBOSE(module, ...) \
       if (LOG_##module##_ENABLED) { \
         Serial.printf("[%lu] 📝 [%s] ", millis(), #module); \
@@ -126,10 +113,10 @@
 
   // Special macro for data dumps (hex output)
   #define LOG_HEX(module, data, len, prefix) \
-    if (LOG_##module##_ENABLED && LOG_LEVEL_VERBOSE) { \
+    if (LOG_##module##_ENABLED && SVESC_LOG_LEVEL_VERBOSE) { \
       Serial.printf("[%lu] 📊 [%s] %s", millis(), #module, prefix); \
       for (int i = 0; i < len && i < 16; i++) { \
-        Serial.printf("%02X ", data[i]); \
+        Serial.printf("%02X ", (unsigned int)((data)[i])); \
       } \
       if (len > 16) Serial.printf("... (%d more)", len - 16); \
       Serial.println(); \
@@ -138,33 +125,32 @@
     
   // Special macro for data dumps (hex output)
   #define LOG_HEX_VERBOSE(module, data, len, prefix) \
-  if (LOG_##module##_ENABLED && LOG_LEVEL_VERBOSE) { \
+  if (LOG_##module##_ENABLED && SVESC_LOG_LEVEL_VERBOSE) { \
     Serial.printf("[%lu] 📊 [%s] %s", millis(), #module, prefix); \
     for (int i = 0; i < len && i < 16; i++) { \
-      Serial.printf("%02X ", data[i]); \
+      Serial.printf("%02X ", (unsigned int)((data)[i])); \
     } \
     if (len > 16) Serial.printf("... (%d more)", len - 16); \
     Serial.println(); \
   }
 
-  
   // Special macro for data dumps (hex output)
   #define LOG_HEX_DEBUG(module, data, len, prefix) \
-    if (LOG_##module##_ENABLED && LOG_LEVEL_DEBUG) { \
+    if (LOG_##module##_ENABLED && SVESC_LOG_LEVEL_DEBUG) { \
       Serial.printf("[%lu] 📊 [%s] %s", millis(), #module, prefix); \
       for (int i = 0; i < len && i < 16; i++) { \
-        Serial.printf("%02X ", data[i]); \
+        Serial.printf("%02X ", (unsigned int)((data)[i])); \
       } \
       if (len > 16) Serial.printf("... (%d more)", len - 16); \
       Serial.println(); \
     }
-    
+
   // Special macro for data dumps (hex output)
   #define LOG_HEX_INFO(module, data, len, prefix) \
-  if (LOG_##module##_ENABLED && LOG_LEVEL_INFO) { \
+  if (LOG_##module##_ENABLED && SVESC_LOG_LEVEL_INFO) { \
     Serial.printf("[%lu] 📊 [%s] %s", millis(), #module, prefix); \
     for (int i = 0; i < len && i < 16; i++) { \
-      Serial.printf("%02X ", data[i]); \
+      Serial.printf("%02X ", (unsigned int)((data)[i])); \
     } \
     if (len > 16) Serial.printf("... (%d more)", len - 16); \
     Serial.println(); \
@@ -172,21 +158,10 @@
 
   // Special macro for data dumps (hex output)
   #define LOG_HEX_WARN(module, data, len, prefix) \
-  if (LOG_##module##_ENABLED && LOG_LEVEL_WARN) { \
+  if (LOG_##module##_ENABLED && SVESC_LOG_LEVEL_WARN) { \
     Serial.printf("[%lu] 📊 [%s] %s", millis(), #module, prefix); \
     for (int i = 0; i < len && i < 16; i++) { \
-      Serial.printf("%02X ", data[i]); \
-    } \
-    if (len > 16) Serial.printf("... (%d more)", len - 16); \
-    Serial.println(); \
-  }
-
-  // Special macro for data dumps (hex output)
-  #define LOG_HEX_INFO(module, data, len, prefix) \
-  if (LOG_##module##_ENABLED && LOG_LEVEL_INFO) { \
-    Serial.printf("[%lu] 📊 [%s] %s", millis(), #module, prefix); \
-    for (int i = 0; i < len && i < 16; i++) { \
-      Serial.printf("%02X ", data[i]); \
+      Serial.printf("%02X ", (unsigned int)((data)[i])); \
     } \
     if (len > 16) Serial.printf("... (%d more)", len - 16); \
     Serial.println(); \
